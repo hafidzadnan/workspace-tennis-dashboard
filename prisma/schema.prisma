@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relation to roles
+  role      Role?
+  transactions Transaction[] @relation("UserTransactions")
+
+  @@index([email])
+}
+
+// Role model for access control
+model Role {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  roleName  String   // "pengurus" or empty (member)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Transaction model
+model Transaction {
+  id              String    @id @default(cuid())
+  tanggalTransaksi DateTime // Transaction date
+  jenis           String    // "penerimaan" or "pengeluaran"
+  nilai           Int       // Value (max 9 digits, no decimals)
+  kategori        String    // "iuran anggota", "operasional", "asset", "lainnya"
+  catatan         String?   // Optional notes
+  isDeleted       Boolean   @default(false) // Soft delete flag
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  createdBy       String   // User ID who created the record (immutable)
+  updatedBy       String?  // User ID who last updated the record
+
+  user            User      @relation("UserTransactions", fields: [createdBy], references: [id])
+
+  @@index([tanggalTransaksi])
+  @@index([isDeleted])
+  @@index([createdBy])
+}
