@@ -89,8 +89,8 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground">
               <strong>Demo Accounts:</strong><br />
-              Pengurus: Rafika@tennis.com / password123<br />
-              Anggota: Hafidz@tennis.com / password123
+              Pengurus: rafika@tennis.com / password123<br />
+              Anggota: hafidz@tennis.com / password123
             </p>
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
