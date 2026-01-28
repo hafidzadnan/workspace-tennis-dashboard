@@ -26,6 +26,9 @@ model User {
   role      Role?
   transactions Transaction[] @relation("UserTransactions")
 
+  // Link to Member profile (optional)
+  member    Member?
+
   @@index([email])
 }
 
@@ -58,4 +61,52 @@ model Transaction {
   @@index([tanggalTransaksi])
   @@index([isDeleted])
   @@index([createdBy])
+}
+
+// Member model
+model Member {
+  id                String    @id @default(cuid())
+  name              String
+  email             String?   // Optional contact email
+  statusKeanggotaan String    // "aktif", "non-aktif"
+  joinedAt          DateTime  @default(now())
+  
+  // Optional link to User account
+  userId            String?   @unique
+  user              User?     @relation(fields: [userId], references: [id])
+
+  dues              DuesStatus[]
+
+  @@index([statusKeanggotaan])
+}
+
+// Dues Status (Ledger Iuran)
+model DuesStatus {
+  id          String   @id @default(cuid())
+  memberId    String
+  year        Int
+  month       Int      // 1-12
+  status      String   // "lunas", "belum"
+  nilaiIuran  Int      @default(0)
+  updatedAt   DateTime @updatedAt
+  updatedBy   String?  // Name or ID of the updater
+
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, year, month])
+  @@index([year, month])
+}
+
+// Court Schedule
+model CourtSchedule {
+  id          String   @id @default(cuid())
+  dayOfWeek   Int      // 1=Monday, 7=Sunday
+  timeSlot    String   // "Pagi", "Sore", "Malam"
+  status      String   // "vacant", "occupied", "canceled"
+  userName    String?  // Name of the booker
+  contact     String?  // Optional contact info
+  updatedAt   DateTime @updatedAt
+  updatedBy   String?  // Name or ID of the updater
+
+  @@unique([dayOfWeek, timeSlot])
 }

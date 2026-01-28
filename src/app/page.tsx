@@ -8,7 +8,10 @@ import { LoginDialog } from '@/components/LoginDialog';
 import { Button } from '@/components/ui/button';
 import { LogOut, Menu, X } from 'lucide-react';
 
-type View = 'dashboard' | 'history';
+import { StatusIuranView } from '@/components/StatusIuranView';
+import { JadwalLapanganView } from '@/components/JadwalLapanganView';
+
+type View = 'dashboard' | 'history' | 'status-iuran' | 'jadwal-lapangan';
 
 export default function Home() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
@@ -17,16 +20,11 @@ export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Determine initial view based on auth state (no direct setState in effect)
-  const displayView = isAuthenticated && !isLoading ? 'history' : currentView;
+  // Allow dashboard to be the default view even if authenticated
+  const displayView = currentView;
 
-  // Update currentView when auth state changes to user's preference
-  useEffect(() => {
-    if (isAuthenticated && !isLoading && currentView === 'dashboard') {
-      // If user is authenticated, we'll show history as the preferred view
-      // but don't force state change here - let the displayView computed value handle it
-    }
-    // Note: We use displayView for rendering instead of forcing state updates
-  }, [isAuthenticated, isLoading]);
+  // Update currentView when auth state changes - removed auto-switch logic to avoid complexity
+  // Rely on user interaction
 
   const handleLoginClick = () => {
     setShowLoginDialog(true);
@@ -39,8 +37,8 @@ export default function Home() {
   };
 
   const handleViewChange = (view: View) => {
-    // Only allow history view if authenticated
-    if (view === 'history' && !isAuthenticated) {
+    // Only allow protected views if authenticated
+    if ((view === 'history' || view === 'status-iuran' || view === 'jadwal-lapangan') && !isAuthenticated) {
       setShowLoginDialog(true);
       return;
     }
@@ -80,6 +78,20 @@ export default function Home() {
                 disabled={!isAuthenticated}
               >
                 Riwayat
+              </Button>
+              <Button
+                variant={displayView === 'status-iuran' ? 'default' : 'ghost'}
+                onClick={() => handleViewChange('status-iuran')}
+                disabled={!isAuthenticated}
+              >
+                Status Iuran
+              </Button>
+              <Button
+                variant={displayView === 'jadwal-lapangan' ? 'default' : 'ghost'}
+                onClick={() => handleViewChange('jadwal-lapangan')}
+                disabled={!isAuthenticated}
+              >
+                Jadwal
               </Button>
 
               {isAuthenticated ? (
@@ -128,6 +140,22 @@ export default function Home() {
               >
                 Riwayat
               </Button>
+              <Button
+                variant={displayView === 'status-iuran' ? 'default' : 'ghost'}
+                onClick={() => handleViewChange('status-iuran')}
+                disabled={!isAuthenticated}
+                className="justify-start"
+              >
+                Status Iuran
+              </Button>
+              <Button
+                variant={displayView === 'jadwal-lapangan' ? 'default' : 'ghost'}
+                onClick={() => handleViewChange('jadwal-lapangan')}
+                disabled={!isAuthenticated}
+                className="justify-start"
+              >
+                Jadwal Lapangan
+              </Button>
 
               {isAuthenticated ? (
                 <>
@@ -165,6 +193,8 @@ export default function Home() {
           <>
             {displayView === 'dashboard' && <Dashboard onLoginClick={handleLoginClick} />}
             {displayView === 'history' && isAuthenticated && <TransactionHistory />}
+            {displayView === 'status-iuran' && isAuthenticated && <StatusIuranView />}
+            {displayView === 'jadwal-lapangan' && isAuthenticated && <JadwalLapanganView />}
           </>
         )}
       </main>

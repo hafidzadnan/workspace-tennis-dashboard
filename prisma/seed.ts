@@ -9,12 +9,12 @@ async function main() {
 
   // Create officer (pengurus)
   const officer = await prisma.user.upsert({
-    where: { email: 'budi@tennis.com' },
+    where: { email: 'rafika@tennis.com' },
     update: {},
     create: {
-      email: 'budi@tennis.com',
+      email: 'rafika@tennis.com',
       password: hashedPassword,
-      name: 'Budi (Pengurus)',
+      name: 'Rafika (Pengurus)',
       role: {
         create: {
           roleName: 'pengurus',
@@ -25,16 +25,62 @@ async function main() {
 
   // Create member (anggota)
   const member = await prisma.user.upsert({
-    where: { email: 'dina@tennis.com' },
+    where: { email: 'hafidz@tennis.com' },
     update: {},
     create: {
-      email: 'dina@tennis.com',
+      email: 'hafidz@tennis.com',
       password: hashedPassword,
-      name: 'Dina (Anggota)',
+      name: 'Hafidz (Anggota)',
     },
   });
 
   console.log('✅ Created test users:', officer, member);
+
+  // Create Members linked to Users
+  const memberRafika = await prisma.member.create({
+    data: {
+      name: 'Rafika',
+      email: 'rafika@tennis.com',
+      statusKeanggotaan: 'aktif',
+      userId: officer.id,
+      dues: {
+        create: [
+          { year: 2026, month: 1, status: 'lunas' },
+          { year: 2026, month: 2, status: 'belum' }
+        ]
+      }
+    }
+  });
+
+  const memberHafidz = await prisma.member.create({
+    data: {
+      name: 'Hafidz',
+      email: 'hafidz@tennis.com',
+      statusKeanggotaan: 'aktif',
+      userId: member.id,
+      dues: {
+        create: [
+          { year: 2026, month: 1, status: 'lunas' },
+          { year: 2026, month: 2, status: 'belum' }
+        ]
+      }
+    }
+  });
+
+  // Create some standalone members
+  await prisma.member.create({
+    data: {
+      name: 'Budi Santoso',
+      statusKeanggotaan: 'aktif',
+      dues: {
+        create: [
+          { year: 2026, month: 1, status: 'lunas' }
+        ]
+      }
+    }
+  });
+
+  console.log('✅ Created members and dues status');
 
   // Create some sample transactions
   const now = new Date();
