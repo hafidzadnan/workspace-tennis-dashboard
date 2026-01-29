@@ -45,6 +45,7 @@ export default function DuesTable({ initialData, year, isPengurus }: DuesTablePr
                 <TableHeader>
                     <TableRow>
                         <TableHead className="w-[200px] sticky left-0 bg-background z-10">Nama Anggota</TableHead>
+                        <TableHead className="text-right min-w-[130px]">Besaran Iuran</TableHead>
                         {MONTHS.map((month) => (
                             <TableHead key={month} className="text-center min-w-[80px]">{month}</TableHead>
                         ))}
@@ -55,6 +56,13 @@ export default function DuesTable({ initialData, year, isPengurus }: DuesTablePr
                         <TableRow key={member.memberId}>
                             <TableCell className="font-medium sticky left-0 bg-background z-10 border-r">
                                 {member.memberName}
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-sm border-r">
+                                {new Intl.NumberFormat('id-ID', {
+                                    style: 'currency',
+                                    currency: 'IDR',
+                                    minimumFractionDigits: 0
+                                }).format(member.defaultIuran)}
                             </TableCell>
                             {MONTHS.map((_, index) => {
                                 const monthNum = index + 1
@@ -71,8 +79,8 @@ export default function DuesTable({ initialData, year, isPengurus }: DuesTablePr
                                             >
                                                 <SelectTrigger
                                                     className={`h-8 w-20 mx-auto ${status === 'lunas'
-                                                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 border-green-200'
-                                                            : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100'
+                                                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 border-green-200'
+                                                        : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100'
                                                         }`}
                                                 >
                                                     {isLoading ? (

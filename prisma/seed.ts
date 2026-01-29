@@ -37,11 +37,14 @@ async function main() {
   console.log('✅ Created test users:', officer, member);
 
   // Create Members linked to Users
-  const memberRafika = await prisma.member.create({
-    data: {
+  const memberRafika = await prisma.member.upsert({
+    where: { email: 'rafika@tennis.com' },
+    update: {},
+    create: {
       name: 'Rafika',
       email: 'rafika@tennis.com',
       statusKeanggotaan: 'aktif',
+      defaultIuran: 150000,
       userId: officer.id,
       dues: {
         create: [
@@ -52,11 +55,14 @@ async function main() {
     }
   });
 
-  const memberHafidz = await prisma.member.create({
-    data: {
+  const memberHafidz = await prisma.member.upsert({
+    where: { email: 'hafidz@tennis.com' },
+    update: {},
+    create: {
       name: 'Hafidz',
       email: 'hafidz@tennis.com',
       statusKeanggotaan: 'aktif',
+      defaultIuran: 100000,
       userId: member.id,
       dues: {
         create: [
@@ -68,10 +74,14 @@ async function main() {
   });
 
   // Create some standalone members
-  await prisma.member.create({
-    data: {
+  await prisma.member.upsert({
+    where: { email: 'budi@tennis.com' },
+    update: {},
+    create: {
       name: 'Budi Santoso',
+      email: 'budi@tennis.com',
       statusKeanggotaan: 'aktif',
+      defaultIuran: 100000,
       dues: {
         create: [
           { year: 2026, month: 1, status: 'lunas' }

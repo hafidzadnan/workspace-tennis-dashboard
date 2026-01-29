@@ -88,9 +88,8 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
           </div>
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground">
-              <strong>Demo Accounts:</strong><br />
-              Pengurus: rafika@tennis.com / password123<br />
-              Anggota: hafidz@tennis.com / password123
+              <strong>Pembuatan Akun:</strong><br />
+              Rafika (HP. 082329633320)
             </p>
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>

@@ -14,7 +14,28 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// User model for authentication
+// ============================================
+// Profile model - linked to Supabase Auth (auth.users)
+// This replaces the old User model after migration
+// ============================================
+model Profile {
+  id        String   @id @db.Uuid  // References auth.users(id)
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  member       Member?
+  role         Role?
+  transactions Transaction[] @relation("ProfileTransactions")
+
+  @@map("profiles")
+}
+
+// ============================================
+// LEGACY: User model for authentication
+// Will be removed after Supabase Auth migration is complete
+// ============================================
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -23,12 +44,12 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relation to roles
-  role      Role?
+  // Relation to roles (legacy)
+  role      Role?    @relation("LegacyUserRole")
   transactions Transaction[] @relation("UserTransactions")
 
-  // Link to Member profile (optional)
-  member    Member?
+  // Link to Member profile (legacy)
+  member    Member?  @relation("LegacyUserMember")
 
   @@index([email])
 }
@@ -36,11 +57,16 @@ model User {
 // Role model for access control
 model Role {
   id        String   @id @default(cuid())
-  userId    String   @unique
+  userId    String?  @unique  // Legacy - will be removed
+  profileId String?  @unique @db.Uuid  // New - Supabase Auth
   roleName  String   // "pengurus" or empty (member)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Relations
+  user      User?    @relation("LegacyUserRole", fields: [userId], references: [id], onDelete: Cascade)
+  profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([profileId])
 }
 
 // Transaction model
@@ -54,31 +80,44 @@ model Transaction {
   isDeleted       Boolean   @default(false) // Soft delete flag
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
-  createdBy       String   // User ID who created the record (immutable)
-  updatedBy       String?  // User ID who last updated the record
+  createdBy       String    // User ID who created the record (immutable) - legacy cuid
+  updatedBy       String?   // User ID who last updated the record
+  
+  // New field for Supabase Auth profile reference
+  createdByProfileId String? @db.Uuid
 
-  user            User      @relation("UserTransactions", fields: [createdBy], references: [id])
+  // Relations - support both legacy and new
+  user            User?     @relation("UserTransactions", fields: [createdBy], references: [id])
+  profile         Profile?  @relation("ProfileTransactions", fields: [createdByProfileId], references: [id])
 
   @@index([tanggalTransaksi])
   @@index([isDeleted])
   @@index([createdBy])
+  @@index([createdByProfileId])
 }
 
 // Member model
 model Member {
   id                String    @id @default(cuid())
   name              String
-  email             String?   // Optional contact email
+  email             String    @unique  // Required & unique for account creation
   statusKeanggotaan String    // "aktif", "non-aktif"
   joinedAt          DateTime  @default(now())
+  defaultIuran      Int       @default(100000)  // Default monthly dues in Rupiah
   
-  // Optional link to User account
+  // Legacy link to User account
   userId            String?   @unique
-  user              User?     @relation(fields: [userId], references: [id])
+  user              User?     @relation("LegacyUserMember", fields: [userId], references: [id])
+
+  // New link to Profile (Supabase Auth)
+  profileId         String?   @unique @db.Uuid
+  profile           Profile?  @relation(fields: [profileId], references: [id])
 
   dues              DuesStatus[]
 
   @@index([statusKeanggotaan])
+  @@index([email])
+  @@index([profileId])
 }
 
 // Dues Status (Ledger Iuran)
@@ -101,8 +140,8 @@ model DuesStatus {
 // Court Schedule
 model CourtSchedule {
   id          String   @id @default(cuid())
-  dayOfWeek   Int      // 1=Monday, 7=Sunday
-  timeSlot    String   // "Pagi", "Sore", "Malam"
+  dayOfWeek   Int      // 1=Monday, 7=Sunday (CHECK: 1-7)
+  timeSlot    String   // "pagi", "sore", "malam" (lowercase)
   status      String   // "vacant", "occupied", "canceled"
   userName    String?  // Name of the booker
   contact     String?  // Optional contact info

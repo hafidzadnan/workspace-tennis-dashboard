@@ -14,9 +14,9 @@ import { Loader2, Plus, User, Phone, Trash2 } from "lucide-react"
 
 const DAYS_MAP = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
 const TIME_SLOTS = [
-    { id: "Pagi", label: "Pagi", time: "06:00 - 08:00" },
-    { id: "Sore", label: "Sore", time: "16:00 - 18:00" },
-    { id: "Malam", label: "Malam", time: "19:00 - 21:00" }
+    { id: "pagi", label: "Pagi", time: "06:00 - 08:00" },
+    { id: "sore", label: "Sore", time: "16:00 - 18:00" },
+    { id: "malam", label: "Malam", time: "19:00 - 21:00" }
 ]
 
 interface ScheduleGridProps {

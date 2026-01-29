@@ -2,9 +2,13 @@ import bcrypt from 'bcryptjs';
 import { db } from '@/lib/db';
 import { cookies } from 'next/headers';
 import { sign, verify } from 'jsonwebtoken';
+import { createServerClient } from '@/lib/supabase';
 
-// JWT secret - in production, this should be in environment variables
+// JWT secret - used for legacy auth, will be removed after full migration
 const JWT_SECRET = process.env.JWT_SECRET || 'tennis-club-secret-key-change-in-production';
+
+// Feature flag for Supabase Auth
+const USE_SUPABASE_AUTH = process.env.USE_SUPABASE_AUTH === 'true';
 
 export interface AuthUser {
   id: string;
@@ -12,6 +16,10 @@ export interface AuthUser {
   name: string | null;
   role: 'pengurus' | 'anggota';
 }
+
+// ============================================
+// LEGACY JWT-based Authentication
+// ============================================
 
 // Hash password
 export async function hashPassword(password: string): Promise<string> {
@@ -64,8 +72,54 @@ export async function clearAuthCookie() {
   cookieStore.delete('auth-token');
 }
 
-// Get current user from cookie
-export async function getCurrentUser(): Promise<AuthUser | null> {
+// ============================================
+// SUPABASE AUTH
+// ============================================
+
+// Get current user from Supabase Auth
+async function getSupabaseUser(): Promise<AuthUser | null> {
+  const supabase = createServerClient();
+  if (!supabase) return null;
+
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (error || !user) {
+      return null;
+    }
+
+    // Fetch profile and role from database using profileId
+    const profile = await db.profile.findUnique({
+      where: { id: user.id },
+      include: { role: true }
+    });
+
+    if (!profile) {
+      // Fallback: user exists in auth but no profile yet
+      return {
+        id: user.id,
+        email: user.email!,
+        name: user.user_metadata?.name || null,
+        role: 'anggota',
+      };
+    }
+
+    const userRole = profile.role?.roleName === 'pengurus' ? 'pengurus' : 'anggota';
+
+    return {
+      id: user.id,
+      email: user.email!,
+      name: profile.name,
+      role: userRole,
+    };
+  } catch (error) {
+    console.error('Error getting Supabase user:', error);
+    return null;
+  }
+}
+
+// Get current user from legacy JWT cookie
+async function getLegacyUser(): Promise<AuthUser | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get('auth-token')?.value;
 
@@ -75,6 +129,22 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 
   const decoded = verifyToken(token);
   return decoded;
+}
+
+// ============================================
+// PUBLIC API
+// ============================================
+
+// Get current user - supports both legacy and Supabase Auth
+export async function getCurrentUser(): Promise<AuthUser | null> {
+  // Try Supabase Auth first if enabled
+  if (USE_SUPABASE_AUTH) {
+    const supabaseUser = await getSupabaseUser();
+    if (supabaseUser) return supabaseUser;
+  }
+
+  // Fallback to legacy JWT auth
+  return getLegacyUser();
 }
 
 // Check if user is authenticated

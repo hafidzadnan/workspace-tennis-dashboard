@@ -6,13 +6,13 @@ import { getCurrentUser } from "@/lib/auth"
 
 export type ScheduleSlot = {
     dayOfWeek: number // 1=Mon, 7=Sun
-    timeSlot: string // "Pagi", "Sore", "Malam"
+    timeSlot: string // "pagi", "sore", "malam" (lowercase)
     status: string // "vacant", "occupied", "canceled"
     userName: string | null
     contact: string | null
 }
 
-const TIME_SLOTS = ["Pagi", "Sore", "Malam"]
+const TIME_SLOTS = ["pagi", "sore", "malam"]
 const DAYS = [1, 2, 3, 4, 5, 6, 7]
 
 export async function getWeeklySchedule() {

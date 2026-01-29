@@ -10,8 +10,9 @@ import { LogOut, Menu, X } from 'lucide-react';
 
 import { StatusIuranView } from '@/components/StatusIuranView';
 import { JadwalLapanganView } from '@/components/JadwalLapanganView';
+import { MemberManagement } from '@/components/MemberManagement';
 
-type View = 'dashboard' | 'history' | 'status-iuran' | 'jadwal-lapangan';
+type View = 'dashboard' | 'history' | 'status-iuran' | 'jadwal-lapangan' | 'anggota-akses';
 
 export default function Home() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
@@ -38,8 +39,12 @@ export default function Home() {
 
   const handleViewChange = (view: View) => {
     // Only allow protected views if authenticated
-    if ((view === 'history' || view === 'status-iuran' || view === 'jadwal-lapangan') && !isAuthenticated) {
+    if ((view === 'history' || view === 'status-iuran' || view === 'jadwal-lapangan' || view === 'anggota-akses') && !isAuthenticated) {
       setShowLoginDialog(true);
+      return;
+    }
+    // Anggota & Akses is only for Pengurus
+    if (view === 'anggota-akses' && user?.role !== 'pengurus') {
       return;
     }
     setCurrentView(view);
@@ -93,6 +98,14 @@ export default function Home() {
               >
                 Jadwal
               </Button>
+              {isAuthenticated && user?.role === 'pengurus' && (
+                <Button
+                  variant={displayView === 'anggota-akses' ? 'default' : 'ghost'}
+                  onClick={() => handleViewChange('anggota-akses')}
+                >
+                  Anggota & Akses
+                </Button>
+              )}
 
               {isAuthenticated ? (
                 <div className="flex items-center gap-2 ml-4">
@@ -156,6 +169,15 @@ export default function Home() {
               >
                 Jadwal Lapangan
               </Button>
+              {isAuthenticated && user?.role === 'pengurus' && (
+                <Button
+                  variant={displayView === 'anggota-akses' ? 'default' : 'ghost'}
+                  onClick={() => handleViewChange('anggota-akses')}
+                  className="justify-start"
+                >
+                  Anggota & Akses
+                </Button>
+              )}
 
               {isAuthenticated ? (
                 <>
@@ -195,6 +217,7 @@ export default function Home() {
             {displayView === 'history' && isAuthenticated && <TransactionHistory />}
             {displayView === 'status-iuran' && isAuthenticated && <StatusIuranView />}
             {displayView === 'jadwal-lapangan' && isAuthenticated && <JadwalLapanganView />}
+            {displayView === 'anggota-akses' && isAuthenticated && user?.role === 'pengurus' && <MemberManagement />}
           </>
         )}
       </main>

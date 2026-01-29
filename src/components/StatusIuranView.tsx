@@ -4,14 +4,19 @@ import { useEffect, useState } from 'react'
 import { getDuesStatus, DuesData } from '@/app/actions/dues'
 import DuesTable from './DuesTable'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from '@/contexts/AuthContext'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Calendar } from 'lucide-react'
+
+// Generate years array: current year +/- 2 years
+const currentYear = new Date().getFullYear()
+const YEARS = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i).reverse()
 
 export function StatusIuranView() {
     const { user } = useAuth()
     const [data, setData] = useState<DuesData[]>([])
     const [loading, setLoading] = useState(true)
-    const [year, setYear] = useState(new Date().getFullYear())
+    const [year, setYear] = useState(currentYear)
 
     useEffect(() => {
         async function fetchData() {
@@ -43,11 +48,31 @@ export function StatusIuranView() {
 
     return (
         <Card className="w-full">
-            <CardHeader>
-                <CardTitle>Status Iuran Anggota {year}</CardTitle>
-                <CardDescription>
-                    Monitoring status pembayaran iuran bulanan anggota.
-                </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <div>
+                    <CardTitle>Status Iuran Anggota {year}</CardTitle>
+                    <CardDescription>
+                        Monitoring status pembayaran iuran bulanan anggota.
+                    </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <Select
+                        value={year.toString()}
+                        onValueChange={(val) => setYear(parseInt(val))}
+                    >
+                        <SelectTrigger className="w-[100px]">
+                            <SelectValue placeholder="Tahun" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {YEARS.map((y) => (
+                                <SelectItem key={y} value={y.toString()}>
+                                    {y}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
             </CardHeader>
             <CardContent>
                 <DuesTable
@@ -59,3 +84,4 @@ export function StatusIuranView() {
         </Card>
     )
 }
+

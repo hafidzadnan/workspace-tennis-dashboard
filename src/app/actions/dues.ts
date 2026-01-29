@@ -8,6 +8,7 @@ export type DuesData = {
     memberId: string
     memberName: string
     statusKeanggotaan: string
+    defaultIuran: number  // Default monthly dues for this member
     dues: {
         [key: number]: { // month 1-12
             status: string
@@ -53,6 +54,7 @@ export async function getDuesStatus(year: number) {
                 memberId: member.id,
                 memberName: member.name,
                 statusKeanggotaan: member.statusKeanggotaan,
+                defaultIuran: member.defaultIuran,
                 dues: duesMap
             }
         })
