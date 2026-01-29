@@ -36,9 +36,9 @@ interface Transaction {
   catatan: string | null;
   createdAt: Date;
   updatedAt: Date;
-  user: {
+  createdByUser: {
     name: string | null;
-  };
+  } | null;
 }
 
 export function TransactionHistory() {
@@ -191,10 +191,9 @@ export function TransactionHistory() {
                       <TableCell className="max-w-xs truncate">
                         {transaction.catatan || '-'}
                       </TableCell>
-                      <TableCell>{transaction.user?.name || '-'}</TableCell>
-                      <TableCell className={`text-right font-medium ${
-                        transaction.jenis === 'penerimaan' ? 'text-green-600' : 'text-red-600'
-                      }`}>
+                      <TableCell>{transaction.createdByUser?.name || '-'}</TableCell>
+                      <TableCell className={`text-right font-medium ${transaction.jenis === 'penerimaan' ? 'text-green-600' : 'text-red-600'
+                        }`}>
                         {transaction.jenis === 'penerimaan' ? '+' : '-'}
                         {formatRupiah(transaction.nilai)}
                       </TableCell>

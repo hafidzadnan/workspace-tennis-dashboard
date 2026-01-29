@@ -34,6 +34,7 @@ export async function getMembers() {
                 defaultIuran: true,
                 joinedAt: true,
                 userId: true,
+                profileId: true,
             }
         })
 

@@ -27,7 +27,7 @@ export function MemberManagement() {
     const [newMember, setNewMember] = useState({
         name: '',
         email: '',
-        defaultIuran: 100000,
+        defaultIuran: 25000,
         statusKeanggotaan: 'aktif'
     })
 
@@ -35,7 +35,7 @@ export function MemberManagement() {
     const [editMember, setEditMember] = useState({
         name: '',
         email: '',
-        defaultIuran: 100000,
+        defaultIuran: 25000,
         statusKeanggotaan: 'aktif'
     })
 
@@ -68,7 +68,7 @@ export function MemberManagement() {
             if (result.success) {
                 toast.success("Anggota berhasil ditambahkan")
                 setIsAddDialogOpen(false)
-                setNewMember({ name: '', email: '', defaultIuran: 100000, statusKeanggotaan: 'aktif' })
+                setNewMember({ name: '', email: '', defaultIuran: 25000, statusKeanggotaan: 'aktif' })
                 fetchMembers()
             } else if (result.error) {
                 toast.error(result.error)

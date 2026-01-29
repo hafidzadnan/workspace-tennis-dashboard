@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -15,26 +12,8 @@ datasource db {
 }
 
 // ============================================
-// Profile model - linked to Supabase Auth (auth.users)
-// This replaces the old User model after migration
-// ============================================
-model Profile {
-  id        String   @id @db.Uuid  // References auth.users(id)
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  member       Member?
-  role         Role?
-  transactions Transaction[] @relation("ProfileTransactions")
-
-  @@map("profiles")
-}
-
-// ============================================
-// LEGACY: User model for authentication
-// Will be removed after Supabase Auth migration is complete
+// User model for authentication (Legacy)
+// Note: Profile table for Supabase Auth is managed via SQL
 // ============================================
 model User {
   id        String   @id @default(cuid())
@@ -44,74 +23,73 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relation to roles (legacy)
+  // Relations
   role      Role?    @relation("LegacyUserRole")
   transactions Transaction[] @relation("UserTransactions")
-
-  // Link to Member profile (legacy)
   member    Member?  @relation("LegacyUserMember")
 
   @@index([email])
 }
 
-// Role model for access control
+// ============================================
+// Role model - assigns permissions to users
+// ============================================
 model Role {
   id        String   @id @default(cuid())
-  userId    String?  @unique  // Legacy - will be removed
-  profileId String?  @unique @db.Uuid  // New - Supabase Auth
-  roleName  String   // "pengurus" or empty (member)
+  userId    String?  @unique
+  profileId String?  @unique @db.Uuid
+  roleName  String   // "pengurus" or "anggota"
 
-  // Relations
   user      User?    @relation("LegacyUserRole", fields: [userId], references: [id], onDelete: Cascade)
-  profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([profileId])
 }
 
+// ============================================
 // Transaction model
+// ============================================
 model Transaction {
   id              String    @id @default(cuid())
-  tanggalTransaksi DateTime // Transaction date
+  tanggalTransaksi DateTime
   jenis           String    // "penerimaan" or "pengeluaran"
-  nilai           Int       // Value (max 9 digits, no decimals)
+  nilai           Int
   kategori        String    // "iuran anggota", "operasional", "asset", "lainnya"
-  catatan         String?   // Optional notes
-  isDeleted       Boolean   @default(false) // Soft delete flag
+  catatan         String?
+  isDeleted       Boolean   @default(false)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
-  createdBy       String    // User ID who created the record (immutable) - legacy cuid
-  updatedBy       String?   // User ID who last updated the record
+
+  // Created by (legacy User)
+  createdBy       String?
+  createdByUser   User?     @relation("UserTransactions", fields: [createdBy], references: [id])
   
-  // New field for Supabase Auth profile reference
+  // Created by (Supabase Auth Profile) - column exists in DB
   createdByProfileId String? @db.Uuid
 
-  // Relations - support both legacy and new
-  user            User?     @relation("UserTransactions", fields: [createdBy], references: [id])
-  profile         Profile?  @relation("ProfileTransactions", fields: [createdByProfileId], references: [id])
-
   @@index([tanggalTransaksi])
-  @@index([isDeleted])
+  @@index([jenis])
   @@index([createdBy])
   @@index([createdByProfileId])
 }
 
+// ============================================
 // Member model
+// ============================================
 model Member {
   id                String    @id @default(cuid())
   name              String
-  email             String    @unique  // Required & unique for account creation
+  email             String    @unique
   statusKeanggotaan String    // "aktif", "non-aktif"
   joinedAt          DateTime  @default(now())
-  defaultIuran      Int       @default(100000)  // Default monthly dues in Rupiah
-  
+  defaultIuran      Int       @default(25000)
+
   // Legacy link to User account
   userId            String?   @unique
   user              User?     @relation("LegacyUserMember", fields: [userId], references: [id])
 
-  // New link to Profile (Supabase Auth)
+  // Profile link for Supabase Auth (column exists in DB)
   profileId         String?   @unique @db.Uuid
-  profile           Profile?  @relation(fields: [profileId], references: [id])
 
   dues              DuesStatus[]
 
@@ -120,7 +98,9 @@ model Member {
   @@index([profileId])
 }
 
-// Dues Status (Ledger Iuran)
+// ============================================
+// DuesStatus model (Ledger Iuran)
+// ============================================
 model DuesStatus {
   id          String   @id @default(cuid())
   memberId    String
@@ -129,7 +109,7 @@ model DuesStatus {
   status      String   // "lunas", "belum"
   nilaiIuran  Int      @default(0)
   updatedAt   DateTime @updatedAt
-  updatedBy   String?  // Name or ID of the updater
+  updatedBy   String?
 
   member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
@@ -137,16 +117,18 @@ model DuesStatus {
   @@index([year, month])
 }
 
-// Court Schedule
+// ============================================
+// CourtSchedule model
+// ============================================
 model CourtSchedule {
   id          String   @id @default(cuid())
-  dayOfWeek   Int      // 1=Monday, 7=Sunday (CHECK: 1-7)
-  timeSlot    String   // "pagi", "sore", "malam" (lowercase)
+  dayOfWeek   Int      // 1=Monday, 7=Sunday
+  timeSlot    String   // "pagi", "sore", "malam"
   status      String   // "vacant", "occupied", "canceled"
-  userName    String?  // Name of the booker
-  contact     String?  // Optional contact info
+  userName    String?
+  contact     String?
   updatedAt   DateTime @updatedAt
-  updatedBy   String?  // Name or ID of the updater
+  updatedBy   String?
 
   @@unique([dayOfWeek, timeSlot])
 }

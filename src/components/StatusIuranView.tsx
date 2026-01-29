@@ -52,7 +52,10 @@ export function StatusIuranView() {
                 <div>
                     <CardTitle>Status Iuran Anggota {year}</CardTitle>
                     <CardDescription>
-                        Monitoring status pembayaran iuran bulanan anggota.
+                        <br />
+                        1. Uang Kas dibayarkan paling lambat tanggal 26 setiap bulan nya dengan besaran Rp 50.000,-/bulan/orang (pengawas up) & Rp 25.000/bulan/orang (staff)<br />
+                        2. Pembayaran dapat melalui cash atau rekening <strong>Bank Mandiri dengan nomor 1840003471412 a.n Rafika Nur Sofiani</strong><br />
+                        3. Updating data akan dilakukan oleh pengelola dana, setelah uang diterima<br />
                     </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">

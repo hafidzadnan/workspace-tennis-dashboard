@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
         tanggalTransaksi: 'desc',
       },
       include: {
-        user: {
+        createdByUser: {
           select: {
             name: true,
           },
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
         updatedBy: user.id,
       },
       include: {
-        user: {
+        createdByUser: {
           select: {
             name: true,
           },
