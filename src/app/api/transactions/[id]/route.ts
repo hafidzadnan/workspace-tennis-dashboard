@@ -23,7 +23,7 @@ export async function GET(
         isDeleted: false,
       },
       include: {
-        user: {
+        createdByUser: {
           select: {
             name: true,
           },
@@ -148,7 +148,7 @@ export async function PUT(
         updatedBy: user.id,
       },
       include: {
-        user: {
+        createdByUser: {
           select: {
             name: true,
           },
