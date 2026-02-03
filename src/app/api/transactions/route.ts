@@ -134,8 +134,11 @@ export async function POST(request: NextRequest) {
         nilai: parseInt(nilai.toString()),
         kategori,
         catatan,
-        createdBy: user.id,
-        updatedBy: user.id,
+        createdByUser: {
+          connect: {
+            id: user.id
+          }
+        },
       },
       include: {
         createdByUser: {
