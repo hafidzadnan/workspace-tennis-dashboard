@@ -16,9 +16,10 @@ interface DuesTableProps {
     initialData: DuesData[]
     year: number
     isPengurus: boolean
+    onStatusUpdated?: () => void
 }
 
-export default function DuesTable({ initialData, year, isPengurus }: DuesTableProps) {
+export default function DuesTable({ initialData, year, isPengurus, onStatusUpdated }: DuesTableProps) {
     const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({})
 
     const handleStatusChange = async (memberId: string, monthIndex: number, newStatus: string) => {
@@ -31,6 +32,7 @@ export default function DuesTable({ initialData, year, isPengurus }: DuesTablePr
                 toast.error(result.error)
             } else {
                 toast.success("Status updated")
+                if (onStatusUpdated) onStatusUpdated()
             }
         } catch (error) {
             toast.error("Failed to update status")
@@ -66,7 +68,8 @@ export default function DuesTable({ initialData, year, isPengurus }: DuesTablePr
                             </TableCell>
                             {MONTHS.map((_, index) => {
                                 const monthNum = index + 1
-                                const status = member.dues[monthNum]?.status || 'belum'
+                                const rawStatus = member.dues[monthNum]?.status || 'belum'
+                                const status = rawStatus.toLowerCase().trim()
                                 const isLoading = loadingMap[`${member.memberId}-${index}`]
 
                                 return (
@@ -78,11 +81,11 @@ export default function DuesTable({ initialData, year, isPengurus }: DuesTablePr
                                                 disabled={isLoading}
                                             >
                                                 <SelectTrigger
-                                                    className={`h-8 w-22 mx-auto text-[10px] ${status === 'lunas'
-                                                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 border-green-200'
+                                                    className={`h-8 w-24 mx-auto text-[10px] font-medium transition-colors ${status === 'lunas'
+                                                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200'
                                                         : status === 'tidak ada'
-                                                            ? 'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400 italic'
-                                                            : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100'
+                                                            ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 italic border-slate-200'
+                                                            : 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 border-rose-100'
                                                         }`}
                                                 >
                                                     {isLoading ? (
@@ -99,12 +102,12 @@ export default function DuesTable({ initialData, year, isPengurus }: DuesTablePr
                                             </Select>
                                         ) : (
                                             <div className={`
-                        px-2 py-1 rounded text-[10px] font-semibold inline-block
+                        px-2 py-1 rounded text-[10px] font-bold inline-block
                         ${status === 'lunas'
-                                                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
+                                                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
                                                     : status === 'tidak ada'
-                                                        ? 'bg-slate-200 text-slate-400 dark:bg-slate-700 dark:text-slate-500 italic'
-                                                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}
+                                                        ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 italic'
+                                                        : 'bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400'}
                       `}>
                                                 {status === 'lunas' ? 'LUNAS' : status === 'tidak ada' ? 'TIDAK ADA' : 'BELUM'}
                                             </div>
