@@ -76,7 +76,7 @@ export default function DuesTable({ initialData, year, isPengurus, onStatusUpdat
                                     <TableCell key={index} className="p-2 text-center">
                                         {isPengurus ? (
                                             <Select
-                                                defaultValue={status}
+                                                value={status}
                                                 onValueChange={(val) => handleStatusChange(member.memberId, index, val)}
                                                 disabled={isLoading}
                                             >
