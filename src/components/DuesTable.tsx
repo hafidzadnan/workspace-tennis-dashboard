@@ -78,9 +78,11 @@ export default function DuesTable({ initialData, year, isPengurus }: DuesTablePr
                                                 disabled={isLoading}
                                             >
                                                 <SelectTrigger
-                                                    className={`h-8 w-20 mx-auto ${status === 'lunas'
+                                                    className={`h-8 w-22 mx-auto text-[10px] ${status === 'lunas'
                                                         ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 border-green-200'
-                                                        : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100'
+                                                        : status === 'tidak ada'
+                                                            ? 'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400 italic'
+                                                            : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100'
                                                         }`}
                                                 >
                                                     {isLoading ? (
@@ -92,16 +94,19 @@ export default function DuesTable({ initialData, year, isPengurus }: DuesTablePr
                                                 <SelectContent>
                                                     <SelectItem value="belum">Belum</SelectItem>
                                                     <SelectItem value="lunas">Lunas</SelectItem>
+                                                    <SelectItem value="tidak ada">Tidak Ada</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         ) : (
                                             <div className={`
-                        px-2 py-1 rounded text-xs font-semibold inline-block
+                        px-2 py-1 rounded text-[10px] font-semibold inline-block
                         ${status === 'lunas'
                                                     ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
-                                                    : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}
+                                                    : status === 'tidak ada'
+                                                        ? 'bg-slate-200 text-slate-400 dark:bg-slate-700 dark:text-slate-500 italic'
+                                                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}
                       `}>
-                                                {status === 'lunas' ? 'LUNAS' : 'BELUM'}
+                                                {status === 'lunas' ? 'LUNAS' : status === 'tidak ada' ? 'TIDAK ADA' : 'BELUM'}
                                             </div>
                                         )}
                                     </TableCell>
