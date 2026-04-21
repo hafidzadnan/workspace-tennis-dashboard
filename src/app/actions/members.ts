@@ -231,3 +231,46 @@ export async function createMemberAccount(memberId: string, password: string) {
     }
 }
 
+// Change member account password (Pengurus only)
+export async function changeMemberPassword(memberId: string, newPassword: string) {
+    const user = await getCurrentUser()
+    if (!user) return { error: "Unauthorized" }
+
+    if (user.role !== 'pengurus') {
+        return { error: "Forbidden: Only Pengurus can change member passwords" }
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+        return { error: "Password must be at least 6 characters" }
+    }
+
+    try {
+        const member = await prisma.member.findUnique({
+            where: { id: memberId }
+        })
+
+        if (!member) {
+            return { error: "Member not found" }
+        }
+
+        if (!member.userId) {
+            return { error: "Member does not have an account to change password for" }
+        }
+
+        // Hash the new password using bcryptjs
+        const bcrypt = await import('bcryptjs')
+        const hashedPassword = await bcrypt.hash(newPassword, 10)
+
+        // Update user password
+        await prisma.user.update({
+            where: { id: member.userId },
+            data: { password: hashedPassword }
+        })
+
+        return { success: true }
+    } catch (error) {
+        console.error("Error changing member password:", error)
+        return { error: "Failed to change password" }
+    }
+}
+
