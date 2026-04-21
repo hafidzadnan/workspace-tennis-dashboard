@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getMembers, createMember, updateMember, createMemberAccount, MemberData } from '@/app/actions/members'
+import { getMembers, createMember, updateMember, createMemberAccount, changeMemberPassword, MemberData } from '@/app/actions/members'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
-import { Loader2, Plus, Pencil, UserCheck, UserX, Users, UserPlus } from "lucide-react"
+import { Loader2, Plus, Pencil, UserCheck, UserX, Users, UserPlus, Key } from "lucide-react"
 
 export function MemberManagement() {
     const [members, setMembers] = useState<MemberData[]>([])
@@ -19,9 +19,11 @@ export function MemberManagement() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [isCreateAccountDialogOpen, setIsCreateAccountDialogOpen] = useState(false)
+    const [isChangePasswordDialogOpen, setIsChangePasswordDialogOpen] = useState(false)
     const [selectedMember, setSelectedMember] = useState<MemberData | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [accountPassword, setAccountPassword] = useState('')
+    const [newPassword, setNewPassword] = useState('')
 
     // Form state for new member
     const [newMember, setNewMember] = useState({
@@ -139,6 +141,35 @@ export function MemberManagement() {
             }
         } catch (error) {
             toast.error("Gagal membuat akun")
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    const openChangePasswordDialog = (member: MemberData) => {
+        setSelectedMember(member)
+        setNewPassword('')
+        setIsChangePasswordDialogOpen(true)
+    }
+
+    const handleChangePassword = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!selectedMember) return
+
+        setIsSubmitting(true)
+
+        try {
+            const result = await changeMemberPassword(selectedMember.id, newPassword)
+            if (result.success) {
+                toast.success("Password berhasil diperbarui!")
+                setIsChangePasswordDialogOpen(false)
+                setSelectedMember(null)
+                setNewPassword('')
+            } else if (result.error) {
+                toast.error(result.error)
+            }
+        } catch (error) {
+            toast.error("Gagal memperbarui password")
         } finally {
             setIsSubmitting(false)
         }
@@ -305,6 +336,18 @@ export function MemberManagement() {
                                                         Buat Akun
                                                     </Button>
                                                 )}
+                                                {member.hasAccount && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => openChangePasswordDialog(member)}
+                                                        className="text-xs"
+                                                        title="Ubah Password"
+                                                    >
+                                                        <Key className="h-3 w-3 mr-1" />
+                                                        Ubah Password
+                                                    </Button>
+                                                )}
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
@@ -421,6 +464,40 @@ export function MemberManagement() {
                                 </Button>
                                 <Button type="submit" disabled={isSubmitting || accountPassword.length < 6}>
                                     {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Buat Akun"}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Change Password Dialog */}
+                <Dialog open={isChangePasswordDialogOpen} onOpenChange={setIsChangePasswordDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Ubah Password untuk {selectedMember?.name}</DialogTitle>
+                            <DialogDescription>
+                                Masukkan password baru untuk akun ini.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleChangePassword} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="new-password">Password Baru *</Label>
+                                <Input
+                                    id="new-password"
+                                    type="password"
+                                    placeholder="Minimal 6 karakter"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    required
+                                    minLength={6}
+                                />
+                            </div>
+                            <DialogFooter>
+                                <Button type="button" variant="outline" onClick={() => setIsChangePasswordDialogOpen(false)}>
+                                    Batal
+                                </Button>
+                                <Button type="submit" disabled={isSubmitting || newPassword.length < 6}>
+                                    {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Simpan"}
                                 </Button>
                             </DialogFooter>
                         </form>

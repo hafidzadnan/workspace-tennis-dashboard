@@ -98,7 +98,7 @@ export async function updateDuesStatus(memberId: string, year: number, month: nu
             }
         })
 
-        revalidatePath('/status-iuran')
+        revalidatePath('/')
         return { success: true }
     } catch (error) {
         console.error("Error updating dues:", error)

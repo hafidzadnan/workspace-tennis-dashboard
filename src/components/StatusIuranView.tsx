@@ -18,24 +18,23 @@ export function StatusIuranView() {
     const [loading, setLoading] = useState(true)
     const [year, setYear] = useState(currentYear)
 
-    useEffect(() => {
-        async function fetchData() {
-            setLoading(true)
-            try {
-                const result = await getDuesStatus(year)
-                if (result.data) {
-                    setData(result.data)
-                }
-            } catch (error) {
-                console.error("Failed to fetch dues", error)
-            } finally {
-                setLoading(false)
+    const fetchData = async () => {
+        if (!user) return
+        setLoading(true)
+        try {
+            const result = await getDuesStatus(year)
+            if (result.data) {
+                setData(result.data)
             }
+        } catch (error) {
+            console.error("Failed to fetch dues", error)
+        } finally {
+            setLoading(false)
         }
+    }
 
-        if (user) {
-            fetchData()
-        }
+    useEffect(() => {
+        fetchData()
     }, [user, year])
 
     if (loading) {
@@ -82,6 +81,7 @@ export function StatusIuranView() {
                     initialData={data}
                     year={year}
                     isPengurus={user?.role === 'pengurus'}
+                    onStatusUpdated={fetchData}
                 />
             </CardContent>
         </Card>
